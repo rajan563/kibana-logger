@@ -141,11 +141,17 @@ public class ElasticsearchRouteBuilder extends RouteBuilder {
         ;
         // @formatter:off
         from("direct:elasticsearch").routeId("elasticsearch")
-                .log("line2 ## ${body}")
-                .marshal(new JacksonDataFormat())
-                .log("before send ")
-                .to("elasticsearch://elasticsearch?operation=Index&indexName=3scale")
-                .log("message send to elastic search ")
+                .setHeader("elasticBody",simple("${body}"))
+                .to("direct:kibana")
+                .choice()
+                   .when(header("isInsert"))
+                     .setBody(simple("${header.elasticBody}"))
+                     .marshal(new JacksonDataFormat())
+                     .log("before send to elastic search ${body}")
+                     .to("elasticsearch://elasticsearch?operation=Index&indexName=3scale")
+                     .log("message send to elastic search ")
+                   .endChoice()
+                .end()
                 ;
     }
 

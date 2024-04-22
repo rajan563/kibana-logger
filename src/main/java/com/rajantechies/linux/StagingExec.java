@@ -100,9 +100,7 @@ public class StagingExec {
                     }
 
                     if (logData.keySet().size() > 8) {
-                        //System.out.println("logdatda=" + logData);
                         template.sendBody("direct:elasticsearch", logData);
-                        System.out.println("sent of pod=="+command);
                         logData.clear();
                     }
                 } else {
@@ -111,7 +109,6 @@ public class StagingExec {
                     }
                 }
                 
-                //System.out.println("command executed 2222 === "+command);
             }
             
 

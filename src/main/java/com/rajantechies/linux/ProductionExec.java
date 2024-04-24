@@ -61,11 +61,13 @@ public class ProductionExec {
                 }
 
                 if (logData.containsValue(requestID)) {
-                    if (line.contains("policy_loader.lua")) {
-                        String hit = Utilities.hitReceived(reader);
-                        if (!hit.isEmpty()) {
-                            logData.put("hitReceived", hit);
-                        }
+                    if (line.contains("configuration_store.lua")) {
+                        line = line.substring(line.indexOf("host:")+5);
+                        logData.put("frontEndHost", line);
+                    }
+                    if (!logData.containsKey("frontEndHost") && line.contains("output_debug_headers")) {
+                            line = line.substring(line.indexOf("host:")+5);
+                            logData.put("frontEndHost", line);
                     }
 
                     if (line.contains("connection to backend-listener")) {
@@ -99,9 +101,7 @@ public class ProductionExec {
                     }
 
                     if (logData.keySet().size() > 8) {
-                        //System.out.println("logdatda=" + logData);
                         template.sendBody("direct:elasticsearch", logData);
-                        System.out.println("sent od the porudction pod=="+command);
                         logData.clear();
                     }
                 } else {
@@ -109,10 +109,9 @@ public class ProductionExec {
                         logData.put("requestID", requestID);
                     }
                 }
-                
-                //System.out.println("command executed 2222 === "+command);
+
+                // System.out.println("command executed 2222 === "+command);
             }
-            
 
         } catch (JSchException | IOException e) {
             closeConnection(channel, session);
@@ -138,7 +137,5 @@ public class ProductionExec {
         }
         session.disconnect();
     }
-
-    
 
 }

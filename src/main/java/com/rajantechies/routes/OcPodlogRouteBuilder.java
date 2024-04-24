@@ -21,19 +21,12 @@ public class OcPodlogRouteBuilder extends RouteBuilder{
     public void configure() throws Exception {
         
         from("timer://runOnce?repeatCount=1&delay=5000").autoStartup(true)
-        .setBody(simple("oc logs -f apicast-production-8-mdx7t"))
-        .bean(prodExec,"getPodLogs")
-         /*
+        .setBody(simple("oc get pods | grep -i 'apicast' | grep -i 'running'"))
+        .to("ssh://opsvc:GmBbhAckVZLR1@172.31.35.3")
          .split().tokenize("\n")
             .to("direct:podsLogs")
           .end()
-          */
          ;
-        
-        from("timer://staging?repeatCount=1&delay=5000").autoStartup(true)
-        .setBody(simple("oc logs -f apicast-staging-23-qsj97"))
-        .bean(stagExec,"getPodLogs")
-        ;
         
         from("direct:podsLogs").routeId("direct-podsLogs")
            .split().tokenize(" ").parallelProcessing().streaming()
@@ -50,14 +43,7 @@ public class OcPodlogRouteBuilder extends RouteBuilder{
         from("seda:GET_LOGS?concurrentConsumers=10").routeId("direct-GET_LOGS")
         .log("before call ${exchangeProperty.pod} log= ${body}")
            .setBody(simple("oc logs -f ${body}"))
-           .choice()
-           .when(body().contains("production"))
-           .bean(prodExec,"getPodLogs")
-           .endChoice()
-           .when(body().contains("staging"))
            .bean(stagExec,"getPodLogs")
-           .endChoice()
-           .end()
         ;
     }
 

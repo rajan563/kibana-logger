@@ -82,11 +82,12 @@ public class ElasticsearchRouteBuilder extends RouteBuilder {
                 }
 
                 if (logData.containsValue(requestID)) {
-                    if (line.contains("policy_loader.lua")) {
-                        String hit = Utilities.hitReceived(reader);
-                        if (!hit.isEmpty()) {
-                            logData.put("hitReceived", hit);
-                        }
+                    if (line.contains("configuration_store.lua")) {
+                        System.out.println("line=="+line);
+                        line = line.substring(line.indexOf("host:"));
+                        System.out.println("line=="+line);
+                        System.out.println("done..");
+                        
                     }
 
                     if (line.contains("connection to backend-listener")) {
@@ -118,11 +119,10 @@ public class ElasticsearchRouteBuilder extends RouteBuilder {
                         }
 
                     }
-                    System.out.println("logData.keySet().size()=="+logData.keySet().size());
+                    //System.out.println("logData.keySet().size()=="+logData.keySet().size());
                     if (logData.keySet().size() > 8) {
                         System.out.println("logdatda=" + logData);
-                        template.sendBody("direct:elasticsearch", logData);
-                        System.out.println("sent");
+                        //template.sendBody("direct:elasticsearch", logData);
                         logData.clear();
 
                     }

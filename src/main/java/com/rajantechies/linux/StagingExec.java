@@ -49,12 +49,13 @@ public class StagingExec {
             channel.setInputStream(null);
             InputStream output = channel.getInputStream();
             channel.connect();
-            System.out.println("command executed 11111 === "+command);
             BufferedReader reader = new BufferedReader(new InputStreamReader(output));
             String line = null;
             Map<String, Object> logData = new LinkedHashMap<>();
             while ((line = reader.readLine()) != null) {
-
+                
+                System.out.println(command +" :"+line);
+                
                 int requestIDIndex = line.indexOf("requestID=");
                 String requestID = "";
                 if (requestIDIndex != -1) {
@@ -62,11 +63,13 @@ public class StagingExec {
                 }
 
                 if (logData.containsValue(requestID)) {
-                    if (line.contains("policy_loader.lua")) {
-                        String hit = Utilities.hitReceived(reader);
-                        if (!hit.isEmpty()) {
-                            logData.put("hitReceived", hit);
-                        }
+                    if (line.contains("configuration_store.lua")) {
+                        line = line.substring(line.indexOf("host:")+5);
+                        logData.put("frontEndHost", line);
+                    }
+                    if (!logData.containsKey("frontEndHost") && line.contains("output_debug_headers")) {
+                            line = line.substring(line.indexOf("host:")+5);
+                            logData.put("frontEndHost", line);
                     }
 
                     if (line.contains("connection to backend-listener")) {
